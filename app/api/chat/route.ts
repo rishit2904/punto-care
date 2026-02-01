@@ -23,108 +23,48 @@ Common issues you can help with:
 
 Always provide helpful, accurate advice. For complex repairs or safety-critical issues, recommend consulting a qualified mechanic. Be concise but thorough.`;
 
-async function callOllama(messages: { role: string; content: string }[]) {
-    const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
-
-    const response = await fetch(`${ollamaUrl}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            model: process.env.OLLAMA_MODEL || 'llama3.2',
-            messages: [
-                { role: 'system', content: SYSTEM_PROMPT },
-                ...messages
-            ],
-            stream: false
-        })
-    });
-
-    if (!response.ok) {
-        throw new Error('Ollama request failed');
-    }
-
-    const data = await response.json();
-    return data.message?.content || 'Sorry, I could not generate a response.';
-}
-
-async function callGemini(messages: { role: string; content: string }[]) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-        throw new Error('GEMINI_API_KEY not configured');
-    }
-
-    // Convert messages to Gemini format
-    const contents = messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }]
-    }));
-
-    const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-                contents
-            })
-        }
-    );
-
-    if (!response.ok) {
-        const error = await response.text();
-        console.error('Gemini error:', error);
-        throw new Error('Gemini request failed');
-    }
-
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
-}
-
 export async function POST(request: NextRequest) {
     try {
-        const { messages, provider = 'auto' } = await request.json();
+        const { messages } = await request.json();
 
         if (!messages || !Array.isArray(messages)) {
             return NextResponse.json({ error: 'Messages array required' }, { status: 400 });
         }
 
-        let responseText: string;
-        let usedProvider: string;
+        const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
+        const ollamaModel = process.env.OLLAMA_MODEL || 'llama3.2:3b';
 
-        // Auto-detect provider: use Gemini if API key exists, otherwise try Ollama
-        if (provider === 'gemini' || (provider === 'auto' && process.env.GEMINI_API_KEY)) {
-            try {
-                responseText = await callGemini(messages);
-                usedProvider = 'gemini';
-            } catch (error) {
-                console.error('Gemini failed, trying Ollama:', error);
-                responseText = await callOllama(messages);
-                usedProvider = 'ollama';
-            }
-        } else {
-            try {
-                responseText = await callOllama(messages);
-                usedProvider = 'ollama';
-            } catch (error) {
-                if (process.env.GEMINI_API_KEY) {
-                    responseText = await callGemini(messages);
-                    usedProvider = 'gemini';
-                } else {
-                    throw error;
-                }
-            }
+        const response = await fetch(`${ollamaUrl}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: ollamaModel,
+                messages: [
+                    { role: 'system', content: SYSTEM_PROMPT },
+                    ...messages
+                ],
+                stream: false
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Ollama error:', errorText);
+            throw new Error(`Ollama request failed: ${response.status}`);
         }
+
+        const data = await response.json();
+        const responseText = data.message?.content || 'Sorry, I could not generate a response.';
 
         return NextResponse.json({
             response: responseText,
-            provider: usedProvider
+            provider: 'ollama'
         });
 
     } catch (error) {
         console.error('Chat API error:', error);
         return NextResponse.json(
-            { error: 'Failed to get AI response. Make sure Ollama is running or GEMINI_API_KEY is set.' },
+            { error: 'Failed to get AI response. Make sure Ollama is running with: ollama run llama3.2:3b' },
             { status: 500 }
         );
     }
