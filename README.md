@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚗 PuntoCare - Fiat Punto Maintenance & DIY Guides
 
-## Getting Started
+A comprehensive car care website for the **Fiat Punto 1.3 Multijet Diesel** with an AI-powered troubleshooting assistant.
 
-First, run the development server:
+## ✨ Features
+
+### AI Chat Assistant
+- **Floating chat button** in bottom-right corner
+- **Ollama-powered** local AI with Fiat Punto knowledge base
+- Helps diagnose problems and answer maintenance questions
+
+### Comprehensive Guides
+- **Homepage** with hero section, specs overview, and maintenance categories
+- **8 Maintenance Guides**: Oil change, Coolant, Battery, Brakes, Lights, Filters, Tires, Wipers
+- **Specifications Page** with complete technical data
+- **Troubleshooting Page** with warning light explanations and common problems
+
+## 🛠️ Tech Stack
+- **Framework**: Next.js 14 (App Router)
+- **Styling**: Custom CSS with dark theme and Fiat red (#C41E3A)
+- **AI**: Ollama with llama3.2:3b model
+- **Icons**: Lucide React
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- [Ollama](https://ollama.ai/) installed locally
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone the repository
+git clone https://github.com/rishit2904/punto-care.git
+cd punto-care
+
+# Install dependencies
+npm install
+
+# Copy environment file
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Running Locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Terminal 1: Start Ollama with the required model
+ollama run llama3.2:3b
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Terminal 2: Start the dev server
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-To learn more about Next.js, take a look at the following resources:
+## 📁 Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+punto-care/
+├── app/
+│   ├── api/chat/          # AI chat API endpoint
+│   ├── maintenance/       # DIY maintenance guides
+│   ├── specifications/    # Technical specs page
+│   ├── troubleshooting/   # Warning lights & problems
+│   ├── globals.css        # Design system & styles
+│   ├── layout.tsx         # Root layout with header/footer
+│   └── page.tsx           # Homepage
+├── components/
+│   ├── ChatBot.tsx        # AI chat widget
+│   ├── Header.tsx         # Navigation header
+│   └── Footer.tsx         # Site footer
+└── .env.example           # Environment variables template
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔧 Environment Variables
 
-## Deploy on Vercel
+```env
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.2:3b
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📝 License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT License - feel free to use this project for your own car!
